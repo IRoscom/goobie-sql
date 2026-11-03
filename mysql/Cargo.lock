@@ -152,9 +152,9 @@ dependencies = [
 
 [[package]]
 name = "branches"
-version = "0.4.4"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e426eb5cc1900033930ec955317b302e68f19f326cc7bb0c8a86865a826cdf0c"
+checksum = "f11502672c5570f77f6bdf573332483f8475bab6a7fda00f1fae8ddb5a6245c0"
 dependencies = [
  "rustc_version",
 ]
@@ -634,9 +634,8 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "gmodx"
-version = "0.25.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cae28863c402c8b71270fc3a338f4a5045d5abe4892752fa52f6f7956a7c40de"
+version = "0.24.0"
+source = "git+https://github.com/wrefgtzweve/gmodx-rs#ef1970672c635056f80e05dd2615179bdc97f77b"
 dependencies = [
  "bindgen",
  "bstr",
@@ -646,17 +645,16 @@ dependencies = [
  "libloading",
  "rust_decimal",
  "rustc-hash",
- "srlion-xutex",
  "tokio",
  "tokio-util",
  "typeid",
+ "xutex",
 ]
 
 [[package]]
 name = "gmodx-macros"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e98e143162b95b81ad0022608c53463302c2b71bef744fbf390a7bf6d2a8fc72"
+source = "git+https://github.com/wrefgtzweve/gmodx-rs#ef1970672c635056f80e05dd2615179bdc97f77b"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1951,16 +1949,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "srlion-xutex"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e625839d289ab734954ba79bd57ddea3f8b86fa8787c5e11ed51de9df8985e0"
-dependencies = [
- "branches",
- "crossbeam-queue",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2648,6 +2636,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
 dependencies = [
  "tap",
+]
+
+[[package]]
+name = "xutex"
+version = "0.2.0"
+source = "git+https://github.com/Srlion/xutex?rev=c2b9be4#c2b9be4fb773761e542eb145ef3775d0f961e95c"
+dependencies = [
+ "branches",
+ "crossbeam-queue",
 ]
 
 [[package]]
