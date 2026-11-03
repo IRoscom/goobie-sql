@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.16.1](https://github.com/IRoscom/goobie-sql/compare/v4.16.2...v4.16.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* replace WAIT_TIMEOUT with PING_INTERVAL to keep connection alive ([84a9098](https://github.com/IRoscom/goobie-sql/commit/84a90986491990c25f634b0e1d3e19ddb70d07ef))
+* this should ACTUALLY fix it ([b2f5241](https://github.com/IRoscom/goobie-sql/commit/b2f5241e6a01d1cff0779dc45eab2db35c817045))
+* this should probably fix it? ([2908d62](https://github.com/IRoscom/goobie-sql/commit/2908d62131fd2a810cf25acd071c62ccc6254ff5))
+* trigger build ([8802b9f](https://github.com/IRoscom/goobie-sql/commit/8802b9f535702c6ec9fafa7944ca0a62d45fe7e5))
+* trigger build ([74175c8](https://github.com/IRoscom/goobie-sql/commit/74175c8318b8275e7956a5a8aa505232e426767e))
+* trigger build ([9317fa0](https://github.com/IRoscom/goobie-sql/commit/9317fa0e48aa1ad1956f85e79428d8fb64937e6a))
+* try this ([d347439](https://github.com/IRoscom/goobie-sql/commit/d347439a6b3e1c5eb2d03e3cb8f051f940ae87d2))
+* update gmodx dependency version to 0.25.1 ([652b45e](https://github.com/IRoscom/goobie-sql/commit/652b45eef90cf4819619c6c49e617d242806fc3e))
+
+
+### Miscellaneous Chores
+
+* release 4.16.1 ([7518961](https://github.com/IRoscom/goobie-sql/commit/75189610285023dad2dba05d5b179d920d2f9d07))
+
 ## [4.16.1](https://github.com/IRoscom/goobie-sql/compare/v4.16.6...v4.16.1) (2026-11-03)
 
 
