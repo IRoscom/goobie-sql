@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release without the v prefix (e.g. 4.16.7)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-sql-lib:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build goobie-sql.lua
+        working-directory: sql
+        run: python3 build.py ${{ inputs.version }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: goobie-sql-lua
+          path: sql/goobie-sql.lua
+
+  build-mysql:
+    strategy:
+      matrix:
+        os: [linux, windows]
+        include:
+          - os: linux
+            runs_on: ubuntu-22.04
+            target1: i686-unknown-linux-gnu
+            target2: x86_64-unknown-linux-gnu
+            extra_deps: |
+              sudo apt update
+              sudo apt install gcc-i686-linux-gnu
+              sudo apt install gcc-multilib
+            binary_prefix: "lib"
+            file_ext: "so"
+            suffix32: _linux.dll
+            suffix64: _linux64.dll
+          - os: windows
+            runs_on: windows-2022
+            target1: i686-pc-windows-msvc
+            target2: x86_64-pc-windows-msvc
+            extra_deps: ""
+            binary_prefix: ""
+            file_ext: "dll"
+            suffix32: _win32.dll
+            suffix64: _win64.dll
+    runs-on: ${{ matrix.runs_on }}
+    defaults:
+      run:
+        working-directory: mysql
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          echo "version_major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
+
+      - name: Set up Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Install build dependencies
+        if: matrix.os == 'linux'
+        run: ${{ matrix.extra_deps }}
+
+      - name: Add targets
+        run: rustup target add ${{ matrix.target1 }} ${{ matrix.target2 }}
+
+      - name: Install cargo-set-version
+        run: cargo install cargo-set-version
+
+      - name: Bump Cargo version
+        run: cargo set-version "${{ inputs.version }}"
+
+      - name: Build targets
+        run: |
+          cargo build --release --target ${{ matrix.target1 }}
+          cargo build --release --target ${{ matrix.target2 }}
+
+      - name: Rename binaries
+        run: |
+          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}gmsv_goobie_mysql.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
+          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}gmsv_goobie_mysql.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mysql-${{ matrix.os }}
+          path: |
+            mysql/target/${{ matrix.target1 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
+            mysql/target/${{ matrix.target2 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
+
+  release:
+    needs: [build-sql-lib, build-mysql]
+    runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create tag and release
+        run: |
+          gh release create "v${{ inputs.version }}" artifacts/* \
+            --target "${{ github.sha }}" \
+            --title "v${{ inputs.version }}" \
+            --generate-notes
