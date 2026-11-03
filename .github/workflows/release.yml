@@ -29,75 +29,73 @@ jobs:
   build-mysql:
     strategy:
       matrix:
-        os: [linux, windows]
         include:
-          - os: linux
-            runs_on: ubuntu-22.04
-            target1: i686-unknown-linux-gnu
-            target2: x86_64-unknown-linux-gnu
-            extra_deps: |
-              sudo apt update
-              sudo apt install gcc-i686-linux-gnu
-              sudo apt install gcc-multilib
-            binary_prefix: "lib"
-            file_ext: "so"
-            suffix32: _linux.dll
-            suffix64: _linux64.dll
-          - os: windows
-            runs_on: windows-2022
-            target1: i686-pc-windows-msvc
-            target2: x86_64-pc-windows-msvc
-            extra_deps: ""
-            binary_prefix: ""
-            file_ext: "dll"
-            suffix32: _win32.dll
-            suffix64: _win64.dll
+          - runs_on: ubuntu-22.04
+            target: i686-unknown-linux-gnu
+            src: libgmsv_goobie_mysql.so
+            suffix: _linux.dll
+          - runs_on: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            src: libgmsv_goobie_mysql.so
+            suffix: _linux64.dll
+          - runs_on: windows-2022
+            target: i686-pc-windows-msvc
+            src: gmsv_goobie_mysql.dll
+            suffix: _win32.dll
+          - runs_on: windows-2022
+            target: x86_64-pc-windows-msvc
+            src: gmsv_goobie_mysql.dll
+            suffix: _win64.dll
     runs-on: ${{ matrix.runs_on }}
     defaults:
       run:
+        shell: bash
         working-directory: mysql
     steps:
       - uses: actions/checkout@v4
 
       - name: Get version
         id: get_version
-        shell: bash
-        run: |
-          VERSION="${{ inputs.version }}"
-          echo "version_major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
+        env:
+          VERSION: ${{ inputs.version }}
+        run: echo "version_major=${VERSION%%.*}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Rust
         run: rustup toolchain install stable --profile minimal
 
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Install build dependencies
-        if: matrix.os == 'linux'
-        run: ${{ matrix.extra_deps }}
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-i686-linux-gnu gcc-multilib
 
-      - name: Add targets
-        run: rustup target add ${{ matrix.target1 }} ${{ matrix.target2 }}
-
-      - name: Install cargo-set-version
-        run: cargo install cargo-set-version
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: mysql
+          shared-key: ${{ matrix.target }}
 
       - name: Bump Cargo version
-        run: cargo set-version "${{ inputs.version }}"
+        env:
+          VERSION: ${{ inputs.version }}
+        run: sed -i "0,/^version = .*/s//version = \"${VERSION}\"/" Cargo.toml
 
-      - name: Build targets
-        run: |
-          cargo build --release --target ${{ matrix.target1 }}
-          cargo build --release --target ${{ matrix.target2 }}
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Rename binaries
+      - name: Collect binary
+        env:
+          MAJOR: ${{ steps.get_version.outputs.version_major }}
         run: |
-          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}gmsv_goobie_mysql.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
-          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}gmsv_goobie_mysql.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
+          mkdir -p dist
+          mv "target/${{ matrix.target }}/release/${{ matrix.src }}" "dist/gmsv_goobie_mysql_${MAJOR}${{ matrix.suffix }}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mysql-${{ matrix.os }}
-          path: |
-            mysql/target/${{ matrix.target1 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
-            mysql/target/${{ matrix.target2 }}/release/gmsv_goobie_mysql_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
+          name: mysql-${{ matrix.target }}
+          path: mysql/dist/*
 
   release:
     needs: [build-sql-lib, build-mysql]
