@@ -33,3 +33,6 @@ tokio-util = { version = "0.7.18", features = ["rt"] }
 opt-level = 3
 lto = "fat"
 codegen-units = 1
+
+[patch.crates-io]
+gmodx = { git = "https://github.com/wrefgtzweve/gmodx-rs", branch = "master" }
