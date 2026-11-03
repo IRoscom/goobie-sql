@@ -67,10 +67,10 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install build dependencies
-        if: runner.os == 'Linux'
+        if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
           sudo apt update
-          sudo apt install -y gcc-i686-linux-gnu gcc-multilib
+          sudo apt install -y gcc-multilib
 
       - uses: Swatinem/rust-cache@v2
         with:
