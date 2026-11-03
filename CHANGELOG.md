@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.16.2](https://github.com/IRoscom/goobie-sql/compare/v4.16.1...v4.16.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* Update Cargo.lock ([9bbc0cc](https://github.com/IRoscom/goobie-sql/commit/9bbc0cc842b90592863c3a7d4cfa2e7f726587c7))
+
 ## [4.16.1](https://github.com/IRoscom/goobie-sql/compare/v4.16.2...v4.16.1) (2026-11-03)
 
 
